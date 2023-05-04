@@ -13,7 +13,7 @@ from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
 # define some conversion parameters
 scale = 1  # scale factor for converting DXF units to mm
 feedrate = 2500  # feedrate in mm/min
-penDelay = 300  # time for pen to raise or lower (ms)
+penDelay = 200  # time for pen to raise or lower (ms)
 plotterSize = [1600, 900]
 
 # Select a dxf File
@@ -55,6 +55,8 @@ def liftPen(f):f.write(f'M280 P0 S100 G0 Z10 \n')
 def lowerPen(f):f.write(f'M280 P0 S0 G0 Z0\n')
 def homePen(f):f.write(f'G28\n')
 def delayLift(f):f.write(f'G4 P{penDelay}\n')
+def disableSteppers(f):f.write(f'G18\n')
+def detachServo(f):f.write(f'M280 P0\n')
 
 # Get the modelspace entities
 msp = doc.modelspace()
@@ -121,4 +123,6 @@ with open(make_output_file(), 'w') as f:
     liftPen(f)
     delayLift(f)
     homePen(f)
+    disableSteppers(f)
+    detachServo(f)
 
