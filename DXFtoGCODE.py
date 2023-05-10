@@ -4,7 +4,7 @@ scale = 0.5  # scale factor for converting DXF units to mm
 feedrate = 2500  # feedrate in mm/min
 
 # Open the DXF file
-doc = ezdxf.readfile('input.dxf')
+doc = ezdxf.readfile('RobotMaze.dxf')
 
 # definitions
 def liftPen(f):f.write(f'M280 P0 S100 G0 Z10 \n')

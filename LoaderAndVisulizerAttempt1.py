@@ -12,8 +12,11 @@ from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
 
 # define some conversion parameters
 scale = 1  # scale factor for converting DXF units to mm
-feedrate = 2500  # feedrate in mm/min
-penDelay = 200  # time for pen to raise or lower (ms)
+FeedRate = 10000
+DrawAccel = 500 # acceleration
+TravelAccel = 10000
+penDelay = 140  # time for pen to raise or lower (ms)
+jerk = 1.0 # jerk
 plotterSize = [1600, 900]
 
 # Select a dxf File
@@ -51,12 +54,9 @@ if not auditor.has_errors:
     fig.savefig('your.png', dpi=100)
 
 # definitions
-def liftPen(f):f.write(f'M280 P0 S100 G0 Z10 \n')
-def lowerPen(f):f.write(f'M280 P0 S0 G0 Z0\n')
+def liftPen(f):f.write(f'G4 P{penDelay}\nM280 P0 S100 G0 Z10 \n')
+def lowerPen(f):f.write(f'G4 P{penDelay}\nM280 P0 S0 G0 Z0\n')
 def homePen(f):f.write(f'G28\n')
-def delayLift(f):f.write(f'G4 P{penDelay}\n')
-def disableSteppers(f):f.write(f'G18\n')
-def detachServo(f):f.write(f'M280 P0\n')
 
 # Get the modelspace entities
 msp = doc.modelspace()
@@ -64,16 +64,15 @@ msp = doc.modelspace()
 # travels without drawing
 def travelMove(x,y):
     f.write(f'; TravelMove\n')
-    delayLift(f)
-    liftPen(f)
-    # go to final position
-    f.write(f'G1 X{x:.3f} Y{y:.3f}\n')
-    delayLift(f)
-    lowerPen(f)  
+    f.write(f'M204 T{travelAccel}\n') # change to travel acceleration
+    liftPen(f) # pen up
+    f.write(f'G0 X{x:.3f} Y{y:.3f}\n') # go to final position
+    f.write(f'M204 T{drawAccel}\n') # change back to draw acceleration
+    lowerPen(f) # pen down
 
 def drawMove(x,y,):
     # continue to next postiion
-    f.write(f'G1 X{x:.3f} Y{y:.3f}\n')
+    f.write(f'G0 X{x:.3f} Y{y:.3f}\n')
 
 with open(make_output_file(), 'w') as f:
     
@@ -86,7 +85,8 @@ with open(make_output_file(), 'w') as f:
 
     # G-code HEADER    
     f.write(f'; HEADER\n')
-    f.write(f'G1 F{feedrate}\n') # set feedrate
+    f.write(f'G0 F{FeedRate}\n') # set feedrate
+    f.write(f'M205 X{jerk}\n') # set x jerk
     liftPen(f)
     homePen(f)
 
@@ -121,8 +121,7 @@ with open(make_output_file(), 'w') as f:
     # G-code FOOTER
     f.write(f'; FOOTER\n')
     liftPen(f)
-    delayLift(f)
-    homePen(f)
-    disableSteppers(f)
-    detachServo(f)
+    f.write(f'G0 X0\n') # Gets Y axis out of the way
+    f.write(f'M84\n') # Disable Steppers
+    f.write(f'M282\n') # dePowers Servo
 
