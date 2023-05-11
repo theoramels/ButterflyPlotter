@@ -13,9 +13,9 @@ from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
 # define some conversion parameters
 scale = 1  # scale factor for converting DXF units to mm
 FeedRate = 10000
-DrawAccel = 500 # acceleration
-TravelAccel = 10000
-penDelay = 140  # time for pen to raise or lower (ms)
+drawAccel = 500 # acceleration
+travelAccel = 1500
+penDelay = 100  # time for pen to raise or lower (ms)
 jerk = 1.0 # jerk
 plotterSize = [1600, 900]
 
@@ -70,7 +70,7 @@ def travelMove(x,y):
     f.write(f'M204 T{drawAccel}\n') # change back to draw acceleration
     lowerPen(f) # pen down
 
-def drawMove(x,y,):
+def drawMove(x,y,xprev):
     # continue to next postiion
     f.write(f'G0 X{x:.3f} Y{y:.3f}\n')
 
@@ -111,7 +111,7 @@ with open(make_output_file(), 'w') as f:
                 # move to the start of the next element
                 travelMove(x_1,y_1)
             # move to the end of the current element
-            drawMove(x_2,y_2)
+            drawMove(x_2,y_2,x_0)
             
             # store previous end values
             x_0 = x_2
