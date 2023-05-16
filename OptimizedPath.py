@@ -10,6 +10,27 @@ import matplotlib.pyplot as plt
 
 plotterSize = [1979, 1000] # [x size, y size]
 
+# implementation of traveling Salesman Problem
+def travellingSalesmanProblem(D):
+    # D : distance matrix. the first row will be treated as the starting node
+
+    l = D.shape # number of elements in one row of distance matrix
+    visited = np.zeros(l[0]) == 1 # nodes visited in boolean array
+    minPath = np.zeros(l[0],dtype= int) # order of nodes visited
+    next = 0 # next row
+    maxDist = np.amax(D) # find max distance between any two nodes
+    visited[next] = True # says the first node has already been visited
+    for ii in range(l[0]):
+        D[next,visited] = maxDist + 1 # add current node to the exclusion list
+        print(np.amin([D[next,:]]))
+        idx = np.where(np.amin(D[next,:]) == D[next,:]) # find the closest node
+        next = idx[0][0] # set that as the next node
+        minPath[ii] = next # record that thats the next node
+        visited[minPath[ii]] = True # check that node off the list
+        
+
+    return minPath[0:-1]
+
 # Select a dxf File
 root = tk.Tk()
 root.withdraw()
@@ -50,25 +71,22 @@ for entity in msp:
 
         prevEnd = entity.dxf.end # save end point of the last line for next loop itteration
         ii = ii + 1 # itterate counter
-pts = pts[0:pts_count+1,:] # get rid of extra entries
+pts = pts[0:pts_count,:] # get rid of extra entries
 pts[0,:] = [0,plotterSize[1]] # set starting point
-#pts[-1,:] = [0,plotterSize[0]] # set end point
 
-# plotting the points
-#print(L[0])
 
 # Calculates the Distance matrix from set of points in pts
 D = np.sqrt(np.sum((pts[None, :] - pts[:, None])**2, -1))
-print(pts)
-
-
+minPath = travellingSalesmanProblem(D) # find min path
+print(minPath)
 
 
 # function to show the plot
 for c in L:
     plt.plot(c[:,0], c[:,1])
 
-
+pts = pts[minPath,:]
+plt.plot(pts[:,0] , pts[:,1])
 plt.show()
 
 
