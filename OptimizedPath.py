@@ -8,28 +8,37 @@ from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Drawing Gcode Parameters
 plotterSize = [1979, 1000] # [x size, y size]
-
+FeedRate = 10000
+drawAccel = 500 # acceleration
+travelAccel = 1500
+penDelay = 100  # time for pen to raise or lower (ms)
+jerk = 1.0 # jerk
 
 # implementation of traveling Salesman Problem
-def travellingSalesmanProblem(D):
+def travellingSalesmanProblem(D,start):
     # D : distance matrix. the first row will be treated as the starting node
 
     l = D.shape # number of elements in one row of distance matrix
     visited = np.zeros(l[0]) == 1 # nodes visited in boolean array
     minPath = np.zeros(l[0],dtype= int) # order of nodes visited
-    next = 0 # next row
     maxDist = np.amax(D) # find max distance between any two nodes
+    totalDist = 0
+    next = start # next row
     visited[next] = True # says the first node has already been visited
-    for ii in range(l[0]):
+    minPath[0] = next # record the first next node
+    for ii in range(1,l[0]):
         D[next,visited] = maxDist + 1 # add current node to the exclusion list
-        idx = np.where(np.amin(D[next,:]) == D[next,:]) # find the closest node
+        dist = np.amin(D[next,:])
+        idx = np.where(dist == D[next,:]) # find the closest node
         next = idx[0][0] # set that as the next node
         minPath[ii] = next # record that thats the next node
         visited[minPath[ii]] = True # check that node off the list
+        totalDist = totalDist + dist
         
 
-    return minPath[0:-1]
+    return minPath, totalDist
 
 # Select a dxf File
 root = tk.Tk()
@@ -55,7 +64,7 @@ msp = doc.modelspace() # Get the modelspace entities
 prevEnd = (-1,-1) # initiate previous x end point
 coords = np.zeros((len(msp),2)) # initiate list of xy coordinates
 pts = np.zeros((len(msp),2)) # initiate list of starting locations
-pts_count = 1 # starting locations counter. Set at 1 so that the first point can be set manually
+pts_count = 0 # starting locations counter. Set at 1 so that the first point can be set manually
 L = list() #initiate list
 ii = 0 # counter
 for entity in msp:
@@ -78,11 +87,20 @@ for entity in msp:
         ii = ii + 1 # itterate counter
 
 pts = pts[0:pts_count,:] # get rid of extra entries
-pts[0,:] = [0,plotterSize[1]] # set starting point
 
 # Calculates the Distance matrix from set of points in pts
 D = np.sqrt(np.sum((pts[None, :] - pts[:, None])**2, -1))
-minPath = travellingSalesmanProblem(D) # find min path
+
+# try starting from every closed loop and pick the best starting point
+minPath = np.zeros(shape=(len(L),len(L)), dtype= int)
+totalDist = np.zeros(len(L))
+for ii in range(len(L)):
+    tup = travellingSalesmanProblem(D,ii) # find min path
+    minPath[:,ii] = tup[0]
+    totalDist[ii] = tup[1]
+    print(str(ii) + ' out of ' + str(len(L)) + ' starting points tried')
+idx = np.where(np.amin(totalDist) == totalDist)
+minPath = minPath[:,idx[0][0]]
 
 # function to show the plot
 for c in L:
@@ -91,9 +109,7 @@ for c in L:
 pts = pts[minPath,:]
 plt.plot(pts[:,0] , pts[:,1])
 plt.show()
-print(pts)
-print(minPath)
-print(len(minPath))
+
 
 # generate gcode
 # definitions
@@ -133,8 +149,11 @@ with open(make_output_file(), 'w') as f:
     # G-code BODY
     f.write(f'; Body\n')
     # iterate through every entitiy in the DXF file
-    #for i in range(len(L)):
-    #    for xy in L[minPath]
+    for locList in L[minPath]:
+        for coords in locList:
+            print(coords)
+            #drawMove(coords[0],coords[1])
+
 
     # G-code FOOTER
     f.write(f'; FOOTER\n')
