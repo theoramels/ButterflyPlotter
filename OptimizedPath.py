@@ -13,9 +13,8 @@ plotterSize = [1979, 1000]  # [x size, y size]
 FeedRate = 10000
 drawAccel = 500  # acceleration
 travelAccel = 1500
-penDelay = 100  # time for pen to raise or lower (ms)
-jerk = 1.0  # jerk
-
+penDelay = 1  # time for pen to raise or lower (ms)
+jerk = 1.0 # jerk
 
 # implementation of traveling Salesman Problem
 def travellingSalesmanProblem(D, start):
@@ -113,24 +112,17 @@ minPath = minPath[:, idx[0][0]]
 for c in L:
     plt.plot(c[:, 0], c[:, 1])
 
-pts = pts[minPath, :]
-plt.plot(pts[:, 0], pts[:, 1])
-plt.show()
+pts = pts[minPath,:]
+plt.plot(pts[:,0] , pts[:,1])
+#plt.show()
 
 
-# generate gcode
+# generate gcode functions
 # definitions
-def liftPen(f):
-    f.write(f"G4 P{penDelay}\nM280 P0 S100 G0 Z10 \n")
-
-
-def lowerPen(f):
-    f.write(f"G4 P{penDelay}\nM280 P0 S0 G0 Z0\n")
-
-
-def homePen(f):
-    f.write(f"G28\n")
-
+#def liftPen(f):f.write(f'G4 P{penDelay}\nM280 P0 S100 G0 Z10 \n')
+def liftPen(f):f.write(f'M280 P0 S100 G0 Z10 \n')
+def lowerPen(f):f.write(f'M280 P0 S0 G0 Z0\n')
+def homePen(f):f.write(f'G28\n')
 
 # travels without drawing
 def travelMove(x, y):
@@ -141,8 +133,7 @@ def travelMove(x, y):
     f.write(f"M204 T{drawAccel}\n")  # change back to draw acceleration
     lowerPen(f)  # pen down
 
-
-def drawMove(x, y, xprev):
+def drawMove(x,y):
     # continue to next postiion
     f.write(f"G0 X{x:.3f} Y{y:.3f}\n")
 
@@ -151,28 +142,28 @@ with open(make_output_file(), "w") as f:
     # claer file
     f.truncate(0)
 
-    # definitions
-    x_0 = 0
-    y_0 = 0
-
-    # G-code HEADER
-    f.write(f"; HEADER\n")
-    f.write(f"G0 F{FeedRate}\n")  # set feedrate
-    f.write(f"M205 X{jerk}\n")  # set x jerk
+    # G-code HEADER    
+    f.write(f'; HEADER\n')
+    f.write(f'G0 F{FeedRate}\n') # set feedrate
+    f.write(f'M205 X{jerk}\n') # set x jerk
+    f.write(f'M106') # Fan ON S### ranges from 0-255
     liftPen(f)
     homePen(f)
 
     # G-code BODY
-    f.write(f"; Body\n")
-    # iterate through every entitiy in the DXF file
-    for locList in L[minPath]:
-        for coords in locList:
-            print(coords)
-            # drawMove(coords[0],coords[1])
+    f.write(f'; Body\n')
+    # iterate through every coordinate in the list of closed loops file
+    for n in minPath:
+        travelMove(L[n][0,0], L[n][0,1]) # travel to the first point
+        l = L[n].shape
+        for k in np.append(np.arange(1,l[0]),0):
+            drawMove(L[n][k,0], L[n][k,1])
+
 
     # G-code FOOTER
     f.write(f"; FOOTER\n")
     liftPen(f)
-    f.write(f"G0 X0\n")  # Gets Y axis out of the way
-    f.write(f"M84\n")  # Disable Steppers
-    f.write(f"M282\n")  # dePowers Servo
+    f.write(f'G0 X0\n') # Gets Y axis out of the way
+    f.write(f'M84\n') # Disable Steppers
+    f.write(f'M282\n') # dePowers Servo
+    f.write(f'M107') # Turns off fan
