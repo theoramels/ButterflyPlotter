@@ -1,3 +1,9 @@
+from collections import namedtuple
+
+Path = namedtuple('Path', ['tool', 'points'])
+Point = namedtuple('Point', ['x', 'y'])
+
+
 # [
 #     (color: red, [(0,1), (2, 0)]),
 #     (color: blue, [(2, 5), (4,6)])
@@ -10,6 +16,12 @@ penDelay = 100  # time for pen to raise or lower (ms)
 jerk = 1.0  # jerk
 
 
+# definitions
+liftPen = [f"G4 P{penDelay}", "M280 P0 S100 G0 Z10"]
+lowerPen = [f"G4 P{penDelay}", "M280 P0 S0 G0 Z0"]
+homePen = ["G28"]
+
+
 def g_encode(lines):
     instructions = []
 
@@ -18,9 +30,7 @@ def g_encode(lines):
     y_0 = 0
 
     # G-code HEADER
-    instructions += ["; HEADER", "G0 F{FeedRate}", f"M205 X{jerk}"]
-    instructions += liftPen()
-    instructions += homePen()
+    instructions += ["; HEADER", "G0 F{FeedRate}", f"M205 X{jerk}", *liftPen, *homePen]
 
     # G-code BODY
     f.write(f"; Body\n")
@@ -38,33 +48,17 @@ def g_encode(lines):
     f.write(f"M282\n")  # dePowers Servo
 
 
-# definitions
-def liftPen(f):
-    f.write(f"G4 P{penDelay}\nM280 P0 S100 G0 Z10 \n")
-
-
-def lowerPen(f):
-    f.write(f"G4 P{penDelay}\nM280 P0 S0 G0 Z0\n")
-
-
-def homePen(f):
-    f.write(f"G28\n")
-
-
-# Get the modelspace entities
-msp = doc.modelspace()
-
-
 # travels without drawing
 def travelMove(x, y):
-    f.write(f"; TravelMove\n")
-    f.write(f"M204 T{travelAccel}\n")  # change to travel acceleration
-    liftPen(f)  # pen up
-    f.write(f"G0 X{x:.3f} Y{y:.3f}\n")  # go to final position
-    f.write(f"M204 T{drawAccel}\n")  # change back to draw acceleration
-    lowerPen(f)  # pen down
+    return [
+        "; TravelMove",
+        f"M204 T{travelAccel}",
+        *liftPen,
+        f"G0 X{x:.3f} Y{y:.3f}",
+        f"M204 T{drawAccel}",
+        *lowerPen,
+    ]
 
 
-def drawMove(x, y, xprev):
-    # continue to next postiion
-    f.write(f"G0 X{x:.3f} Y{y:.3f}\n")
+def drawMove(x, y):
+    return [f"G0 X{x:.3f} Y{y:.3f}"]
