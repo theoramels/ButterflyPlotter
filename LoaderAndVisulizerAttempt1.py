@@ -56,38 +56,6 @@ if not auditor.has_errors:
     fig.savefig("your.png", dpi=100)
 
 
-# definitions
-def liftPen(f):
-    f.write(f"G4 P{penDelay}\nM280 P0 S100 G0 Z10 \n")
-
-
-def lowerPen(f):
-    f.write(f"G4 P{penDelay}\nM280 P0 S0 G0 Z0\n")
-
-
-def homePen(f):
-    f.write(f"G28\n")
-
-
-# Get the modelspace entities
-msp = doc.modelspace()
-
-
-# travels without drawing
-def travelMove(x, y):
-    f.write(f"; TravelMove\n")
-    f.write(f"M204 T{travelAccel}\n")  # change to travel acceleration
-    liftPen(f)  # pen up
-    f.write(f"G0 X{x:.3f} Y{y:.3f}\n")  # go to final position
-    f.write(f"M204 T{drawAccel}\n")  # change back to draw acceleration
-    lowerPen(f)  # pen down
-
-
-def drawMove(x, y, xprev):
-    # continue to next postiion
-    f.write(f"G0 X{x:.3f} Y{y:.3f}\n")
-
-
 with open(make_output_file(), "w") as f:
     # claer file
     f.truncate(0)
