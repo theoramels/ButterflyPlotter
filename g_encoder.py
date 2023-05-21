@@ -1,13 +1,3 @@
-from collections import namedtuple
-
-Path = namedtuple('Path', ['tool', 'points'])
-Point = namedtuple('Point', ['x', 'y'])
-
-
-# [
-#     (color: red, [(0,1), (2, 0)]),
-#     (color: blue, [(2, 5), (4,6)])
-# ]
 
 FeedRate = 10000
 drawAccel = 500  # acceleration
@@ -22,43 +12,46 @@ lowerPen = [f"G4 P{penDelay}", "M280 P0 S0 G0 Z0"]
 homePen = ["G28"]
 
 
-def g_encode(lines):
-    instructions = []
+def comment(text):
+    return f";; {text}"
 
-    # definitions
-    x_0 = 0
-    y_0 = 0
-
-    # G-code HEADER
-    instructions += ["; HEADER", "G0 F{FeedRate}", f"M205 X{jerk}", *liftPen, *homePen]
-
-    # G-code BODY
-    f.write(f"; Body\n")
-    # iterate through every entitiy in the DXF file
-    for locList in L[minPath]:
-        for coords in locList:
-            print(coords)
-            # drawMove(coords[0],coords[1])
-
-    # G-code FOOTER
-    f.write(f"; FOOTER\n")
-    liftPen(f)
-    f.write(f"G0 X0\n")  # Gets Y axis out of the way
-    f.write(f"M84\n")  # Disable Steppers
-    f.write(f"M282\n")  # dePowers Servo
-
-
-# travels without drawing
-def travelMove(x, y):
+def raised_move(point):
     return [
-        "; TravelMove",
-        f"M204 T{travelAccel}",
+        comment("TravelMove"),
         *liftPen,
-        f"G0 X{x:.3f} Y{y:.3f}",
-        f"M204 T{drawAccel}",
+        *move_point(point, travelAccel),
         *lowerPen,
     ]
 
 
-def drawMove(x, y):
-    return [f"G0 X{x:.3f} Y{y:.3f}"]
+def move_point(point, accel):
+    x, y = point
+    return [
+        f"M204 T{accel}",
+        f"G0 X{x:.3f} Y{y:.3f}"]
+
+
+def draw_path(path):
+    return [*raised_move(path[0]), *[move_point(point, drawAccel) for point in path[1:]]]
+
+
+def g_encode(paths):
+    instructions = [
+        # G-code HEADER
+        comment("HEADER"),
+        "G0 F{FeedRate}",
+        f"M205 X{jerk}",
+        *liftPen,
+        *homePen,
+        # G-code BODY
+        comment("Body"),
+        *[draw_path(path) for path in paths],
+        comment("FOOTER"),
+        *liftPen,
+        "G0 X0",
+        "M84",  # Disable Steppers
+        "M282",  # dePowers Servo
+    ]
+
+    for inst in instructions:
+        print(inst)
