@@ -1,4 +1,3 @@
-
 # [
 #     (color: red, [(0,1), (2, 0)]),
 #     (color: blue, [(2, 5), (4,6)])
@@ -19,9 +18,7 @@ def g_encode(lines):
     y_0 = 0
 
     # G-code HEADER
-    instructions.append("; HEADER")
-    instructions.append("G0 F{FeedRate}")
-    instructions.append(f"M205 X{jerk}\n")  # set x jerk
+    instructions += ["; HEADER", "G0 F{FeedRate}", f"M205 X{jerk}"]
     instructions += liftPen()
     instructions += homePen()
 
@@ -39,9 +36,6 @@ def g_encode(lines):
     f.write(f"G0 X0\n")  # Gets Y axis out of the way
     f.write(f"M84\n")  # Disable Steppers
     f.write(f"M282\n")  # dePowers Servo
-
-
-
 
 
 # definitions
@@ -74,4 +68,3 @@ def travelMove(x, y):
 def drawMove(x, y, xprev):
     # continue to next postiion
     f.write(f"G0 X{x:.3f} Y{y:.3f}\n")
-

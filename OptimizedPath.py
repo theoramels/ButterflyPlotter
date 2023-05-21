@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 # Drawing Gcode Parameters
 plotterSize = [1979, 1000]  # [x size, y size]
 
-
 # implementation of traveling Salesman Problem
 def travellingSalesmanProblem(D, start):
     # D : distance matrix. the first row will be treated as the starting node
@@ -108,15 +107,11 @@ minPath = minPath[:, idx[0][0]]
 for c in L:
     plt.plot(c[:, 0], c[:, 1])
 
-pts = pts[minPath, :]
-plt.plot(pts[:, 0], pts[:, 1])
-plt.show()
+pts = pts[minPath,:]
+plt.plot(pts[:,0] , pts[:,1])
+#plt.show()
 
 
-
-def drawMove(x, y, xprev):
-    # continue to next postiion
-    f.write(f"G0 X{x:.3f} Y{y:.3f}\n")
 
 
 with open(make_output_file(), "w") as f:
