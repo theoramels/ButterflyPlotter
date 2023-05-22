@@ -7,7 +7,7 @@ from ezdxf.addons.drawing import RenderContext, Frontend
 from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
 import numpy as np
 import matplotlib.pyplot as plt
-import g_encoder
+from g_encoder import GEncoder
 
 
 def make_output_file():
@@ -42,7 +42,7 @@ def read_dxf():
             current_loop.append((entity.dxf.start[0],entity.dxf.start[1]))
             if (entity.dxf.end[0], entity.dxf.end[1]) == current_loop[0]:
                 loops.append(current_loop)
-                current_loop = []    
+                current_loop = []
     return loops, file_path
 
 # Zains implementation of traveling Salesman Problem
@@ -104,8 +104,5 @@ plt.plot(pts[:,0] , pts[:,1])
 
 
 with open(make_output_file(), "w") as f:
-    
-    g_encoder.g_encode(loops,f)
-
-    # claer file
-    f.truncate(0)
+    encoder = GEncoder()
+    encoder.encode(loops,f)
