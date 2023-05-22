@@ -104,7 +104,11 @@ class GEncoder:
         return set_inst_lowerings[key](val)
 
     def _lower_pseudo_instructions(self, pseudos):
-        return [inst for pseudo_inst in pseudos for inst in self._lower_pseudo_instruction(pseudo_inst)]
+        return [
+            inst
+            for pseudo_inst in pseudos
+            for inst in self._lower_pseudo_instruction(pseudo_inst)
+        ]
 
     def encode(self, paths, f):
         instructions = self._build_pseudo_instruction_list(paths)
