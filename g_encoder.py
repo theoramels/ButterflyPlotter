@@ -35,7 +35,7 @@ def draw_path(path):
     return [*raised_move(path[0]), *[move_point(point, drawAccel) for point in path[1:]]]
 
 
-def g_encode(paths):
+def g_encode(paths,f):
     instructions = [
         # G-code HEADER
         comment("HEADER"),
@@ -55,3 +55,4 @@ def g_encode(paths):
 
     for inst in instructions:
         print(inst)
+        
