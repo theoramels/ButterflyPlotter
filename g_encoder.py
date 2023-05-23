@@ -64,6 +64,7 @@ class GEncoder:
             "HEADER",
             c(f"G0 F{FEED_RATE}"),
             c(f"M205 X{JERK}"),
+            c(f"M106 P0 S150"), # Fan on
             home_pen,
             "BODY",
             *[inst for path in paths for inst in self._draw_path(path)],
@@ -72,6 +73,7 @@ class GEncoder:
             c("G0 X0"),
             c("M84"),  # Disable Steppers
             c("M282"),  # dePowers Servo
+            c("M107") # Fan off
         ]
 
     def _optimize_pseudo_instructions(self, instructions):
