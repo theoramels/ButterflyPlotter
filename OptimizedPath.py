@@ -102,7 +102,6 @@ pts = pts[minPath,:]
 plt.plot(pts[:,0] , pts[:,1])
 #plt.show()
 
-
 with open(make_output_file(), "w") as f:
     encoder = GEncoder()
     encoder.encode(loops,f)
