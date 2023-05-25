@@ -5,9 +5,9 @@
 from enum import Enum
 
 FEED_RATE = 10000
-DRAW_ACCEL = 500  # acceleration
-TRAVEL_ACCEL = 1500
-PEN_DELAY = 100  # time for pen to raise or lower (ms)
+DRAW_ACCEL = 500  # max draw acceleration
+TRAVEL_ACCEL = 1500 # max travel acceleration
+PEN_DELAY = 80  # time for pen to raise or lower (ms)
 JERK = 1.0  # jerk
 
 
@@ -62,15 +62,15 @@ class GEncoder:
     def _build_pseudo_instruction_list(self, paths):
         return [
             "HEADER",
-            c(f"G0 F{FEED_RATE}"),
-            c(f"M205 X{JERK}"),
+            c(f"G0 F{FEED_RATE}"), # sets max feedrate
+            c(f"M205 X{JERK}"), # sets max jerk
             c(f"M106 P0 S150"), # Fan on
             home_pen,
             "BODY",
             *[inst for path in paths for inst in self._draw_path(path)],
             "FOOTER",
             lift_pen,
-            c("G0 X0"),
+            c("G0 X0"), # move Y axis out of the way
             c("M84"),  # Disable Steppers
             c("M282"),  # dePowers Servo
             c("M107") # Fan off

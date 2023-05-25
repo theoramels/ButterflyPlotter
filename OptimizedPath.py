@@ -41,8 +41,9 @@ def read_dxf():
 
             current_loop.append((entity.dxf.start[0],entity.dxf.start[1]))
             if (entity.dxf.end[0], entity.dxf.end[1]) == current_loop[0]:
-                loops.append(current_loop)
-                current_loop = []
+                current_loop.append(current_loop[0]) # end were you started. Finish the loops
+                loops.append(current_loop) # add loop to list of loops
+                current_loop = [] # reset variable
     return loops, file_path
 
 # Zains implementation of traveling Salesman Problem
@@ -77,31 +78,38 @@ def tryEveryStartPoint(loops):
     D = np.sqrt(np.sum((pts[None, :] - pts[:, None]) ** 2, -1))
 
     # try starting from every closed loop and pick the best starting point
-    minPath = np.zeros(shape=(len(loops), len(loops)), dtype=int)
+    #minPath = np.zeros(shape=(len(loops), len(loops)), dtype=int)
+    minPath = []
     totalDist = np.zeros(len(loops))
     for ii in range(len(loops)):
         tup = travellingSalesmanProblem(D, ii)  # find min path
-        minPath[:, ii] = tup[0]
+        minPath.append(tup[0])
         totalDist[ii] = tup[1]
         print(str(ii) + " out of " + str(len(loops)) + " starting points tried")
     idx = np.where(np.amin(totalDist) == totalDist)
-    minPath = minPath[:, idx[0][0]]
-    return minPath
+    return minPath[idx[0][0]]
 
 
 loops, file_path = read_dxf() # reads dxf into data structure
 
-minPath = tryEveryStartPoint(loops) # optimizes path
+minPath = tryEveryStartPoint(loops) # finds a good path through loops
+
+sortedLoops = []
+for n in range(len(loops)):
+    sortedLoops.append(loops[minPath[n]])
+
 
 # function to show the plot
 for loop in loops:
     plt.plot([p[0] for p in loop], [p[1] for p in loop])
 
+# plot results
 pts = np.array([loop[0] for loop in loops])
 pts = pts[minPath,:]
 plt.plot(pts[:,0] , pts[:,1])
 #plt.show()
 
+# writes to gcode
 with open(make_output_file(), "w") as f:
     encoder = GEncoder()
-    encoder.encode(loops,f)
+    encoder.encode(sortedLoops,f)
