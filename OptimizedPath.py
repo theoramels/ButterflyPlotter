@@ -107,7 +107,7 @@ for loop in loops:
 pts = np.array([loop[0] for loop in loops])
 pts = pts[minPath,:]
 plt.plot(pts[:,0] , pts[:,1])
-#plt.show()
+plt.show()
 
 # writes to gcode
 with open(make_output_file(), "w") as f:
