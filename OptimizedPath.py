@@ -1,115 +1,22 @@
-import tkinter as tk
-from tkinter import filedialog
-import sys
-import ezdxf
-from ezdxf import recover
-from ezdxf.addons.drawing import RenderContext, Frontend
-from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
-import numpy as np
-import matplotlib.pyplot as plt
 from g_encoder import GEncoder
+from optimize_loop_order import optimize_loops
+import debug_utilities
+from dfx_wrapper import read_dxf, file_dialog_dxf
 
+path = file_dialog_dxf()
+loops = read_dxf(path)  # reads dxf into data structure
 
-def make_output_file():
-    saveFileName = file_path.split("/")[-1].split(".")[0]
-    saveFileName += ".gcode"
-    return saveFileName
+debug_utilities.dump_loops_path(loops)
 
-# reads dxf into list of list of points
-def read_dxf():
-    # Select a dxf File
-    root = tk.Tk()
-    root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=[("DXF files", "*.dxf")])
+sortedLoops = optimize_loops(loops)  # finds a good path through loops
 
-    try:
-        doc, auditor = recover.readfile(file_path)
-    except IOError:
-        print(f"Not a DXF file or a generic I/O error.")
-        sys.exit(1)
-    except ezdxf.DXFStructureError:
-        print(f"Invalid or corrupted DXF file.")
-        sys.exit(2)
+debug_utilities.dump_loops_path(sortedLoops)
 
-    # Get XY coordinates of DXF into an array
-    msp = doc.modelspace()  # Get the modelspace entities
-    current_loop = []
-    loops = []  # initiate list
-    for entity in msp:
-        # check if the entity is a line or a polyline
-        if entity.dxftype() in {"LINE","LWPOLYLINE"}:
+outfile = path.with_suffix(".gcode")
 
-            current_loop.append((entity.dxf.start[0],entity.dxf.start[1]))
-            if (entity.dxf.end[0], entity.dxf.end[1]) == current_loop[0]:
-                current_loop.append(current_loop[0]) # end were you started. Finish the loops
-                loops.append(current_loop) # add loop to list of loops
-                current_loop = [] # reset variable
-    return loops, file_path
+encoder = GEncoder()
+with open(outfile, "w") as f:
+    encoder.encode(sortedLoops, f)
 
-# Zains implementation of traveling Salesman Problem
-def travellingSalesmanProblem(D, start):
-    # D : distance matrix. the first row will be treated as the starting node
-
-    l = D.shape  # number of elements in one row of distance matrix
-    visited = np.zeros(l[0]) == 1  # nodes visited in boolean array
-    minPath = np.zeros(l[0], dtype=int)  # order of nodes visited
-    maxDist = np.amax(D)  # find max distance between any two nodes
-    totalDist = 0
-    next = start  # next row
-    visited[next] = True  # says the first node has already been visited
-    minPath[0] = next  # record the first next node
-    for ii in range(1, l[0]):
-        D[next, visited] = maxDist + 1  # add current node to the exclusion list
-        dist = np.amin(D[next, :])
-        idx = np.where(dist == D[next, :])  # find the closest node
-        next = idx[0][0]  # set that as the next node
-        minPath[ii] = next  # record that thats the next node
-        visited[minPath[ii]] = True  # check that node off the list
-        totalDist = totalDist + dist
-
-    return minPath, totalDist
-
-# tries every starting location
-def tryEveryStartPoint(loops):
-    # grabs starting points of each loop into a list
-    pts = np.array([loop[0] for loop in loops])
-
-    # Calculates the Distance matrix from set of points in pts
-    D = np.sqrt(np.sum((pts[None, :] - pts[:, None]) ** 2, -1))
-
-    # try starting from every closed loop and pick the best starting point
-    #minPath = np.zeros(shape=(len(loops), len(loops)), dtype=int)
-    minPath = []
-    totalDist = np.zeros(len(loops))
-    for ii in range(len(loops)):
-        tup = travellingSalesmanProblem(D, ii)  # find min path
-        minPath.append(tup[0])
-        totalDist[ii] = tup[1]
-        print(str(ii) + " out of " + str(len(loops)) + " starting points tried")
-    idx = np.where(np.amin(totalDist) == totalDist)
-    return minPath[idx[0][0]]
-
-
-loops, file_path = read_dxf() # reads dxf into data structure
-
-minPath = tryEveryStartPoint(loops) # finds a good path through loops
-
-sortedLoops = []
-for n in range(len(loops)):
-    sortedLoops.append(loops[minPath[n]])
-
-
-# function to show the plot
-for loop in loops:
-    plt.plot([p[0] for p in loop], [p[1] for p in loop])
-
-# plot results
-pts = np.array([loop[0] for loop in loops])
-pts = pts[minPath,:]
-plt.plot(pts[:,0] , pts[:,1])
-plt.show()
-
-# writes to gcode
-with open(make_output_file(), "w") as f:
-    encoder = GEncoder()
-    encoder.encode(sortedLoops,f)
+print('Done')
+debug_utilities.block_and_show()
