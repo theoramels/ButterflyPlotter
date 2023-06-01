@@ -6,7 +6,7 @@ from dfx_wrapper import read_dxf, file_dialog_dxf
 path = file_dialog_dxf()
 loops = read_dxf(path)  # reads dxf into data structure
 
-debug_utilities.dump_loops_path(loops)
+#debug_utilities.dump_loops_path(loops)
 
 sortedLoops = optimize_loops(loops)  # finds a good path through loops
 

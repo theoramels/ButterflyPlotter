@@ -32,7 +32,7 @@ def read_dxf(path):
     loops = []  # initiate list
     for entity in msp:
         # check if the entity is a line or a polyline
-        if entity.dxftype() in {"LINE", "LWPOLYLINE"}:
+        if entity.dxftype() in {"LINE"}: #, "LWPOLYLINE"}:
             current_loop.append((entity.dxf.start[0], entity.dxf.start[1]))
             if (entity.dxf.end[0], entity.dxf.end[1]) == current_loop[0]:
                 current_loop.append(
