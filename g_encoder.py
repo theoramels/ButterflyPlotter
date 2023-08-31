@@ -5,9 +5,9 @@
 from enum import Enum
 
 FEED_RATE = 10000
-DRAW_ACCEL = 100  # max draw acceleration
+DRAW_ACCEL = 500  # max draw acceleration
 TRAVEL_ACCEL = 1500 # max travel acceleration
-PEN_DELAY = 30  # time for pen to raise or lower (ms) idk why but this is the fastest i can get it to delay. but removing it makes it break.
+PEN_DELAY = 60  # time for pen to raise or lower (ms) idk why but this is the fastest i can get it to delay. but removing it makes it break.
 JERK = 0.1  # max jerk
 
 
@@ -30,7 +30,7 @@ set_accel = lambda a: s(MachineSetting.ACCEL, a)
 set_inst_lowerings = {
     MachineSetting.PEN: lambda draw: [
         f"G4 P{PEN_DELAY}",
-        "M280 P0 S0 G0 Z0" if draw else "M280 P0 S100 G0 Z10",
+        "M280 P0 S0 G0 Z0" if draw else "M280 P0 S180 G0 Z10",
     ],
     MachineSetting.POS: lambda point: [f"G0 X{point[0]:.3f} Y{point[1]:.3f}"],
     MachineSetting.ACCEL: lambda accel: [f"M204 T{accel}"],
