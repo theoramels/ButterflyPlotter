@@ -5,7 +5,7 @@
 from enum import Enum
 
 FEED_RATE = 10000
-DRAW_ACCEL = 500  # max draw acceleration
+DRAW_ACCEL = 1000  # max draw acceleration
 TRAVEL_ACCEL = 1500 # max travel acceleration
 PEN_DELAY = 60  # time for pen to raise or lower (ms) idk why but this is the fastest i can get it to delay. but removing it makes it break.
 JERK = 0.1  # max jerk
