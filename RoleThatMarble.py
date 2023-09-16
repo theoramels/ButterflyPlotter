@@ -6,7 +6,7 @@ import math as mth
 
 maxPrintArea = np.array([200, 270]) # (Y, X) in mm
 L= 50000
-t = .1
+t = .2
 
 All = np.load('Gradient.npy')
 A =      All[:,:,0]
@@ -60,28 +60,56 @@ class marble:
                 self.pos = self.pos[self.pos[:,0] != -1]
                 self.done = 1
 
-print(printArea)
-print(A.shape)
+    def slide(self,a):
+        # move marble to new position
+        posx = self.pos[self.n,0] + a[0]*self.mass # x component
+        posy = self.pos[self.n,1] + a[1]*self.mass # y component
+        newPos = np.array((posx,posy)) # new position
+        if self.done == 0: # if the marble is still in bounds
+            # if point is within bounds
+            if (newPos[0] >= 0) and (newPos[1] >= 0) and (newPos[0] <= self.printArea[0]) and (newPos[1] <= self.printArea[1]):
+                self.pos[n+1,:] = newPos  # assigns new position to position array
+                self.curPos = self.pos[self.n,:] # update current position
+                
+                self.n = self.n + 1 # bump counter up
+            else:
+                self.pos = self.pos[self.pos[:,0] != -1]
+                self.done = 1
+        
+
+
+# initiate the marbles
 m = []
-vi = (0,.1) # initial (x,y) velocity
-xi = (100,100) # initial (x,y) position
-m.append(marble(1,t,vi,xi,L,printArea))
+N = 100
+xinit = np.linspace(1,printArea[0]-1,N)
+yinit = np.linspace(1,printArea[1]-1,N)
+for ii in range(len(yinit)):
+    for n in range(len(xinit)):
+        vi = (0,.01) # initial (x,y) velocity
+        xi = (xinit[n],yinit[ii]) # initial (x,y) position
+        m.append(marble(10,t,vi,xi,L,printArea))
 
 
-scl = A.shape[1]/printArea[0]
-print(scl)
-for n in range(L):
-    curPos = m[0].curPos
-    scaledIdx = (round(curPos[0]*scl),round(curPos[1]*scl))
-   
-    ax = Ahorz[scaledIdx[1],scaledIdx[0]]
-    ay = Avert[scaledIdx[1],scaledIdx[0]]
-    a = (ax,ay)
-    m[0].role(a)  
+scl = (A.shape[1]-1)/printArea[0]
+print(A.shape)
+print(printArea)
+print((printArea[0]*scl,printArea[1]*scl))
+for M in range(len(m)):
+    print(M)
+    for n in range(L):
+        if m[M].done == 0: # if marble is still rolling
+            curPos = m[M].curPos
+            scaledIdx = (round(curPos[0]*scl),round(curPos[1]*scl))
+            ax = Ahorz[scaledIdx[1],scaledIdx[0]]
+            ay = Avert[scaledIdx[1],scaledIdx[0]]
+            a = (ax,ay)
+            # m[M].role(a) role the marble
+            m[M].slide(a) 
+    plt.plot(m[M].pos[:,0],m[M].pos[:,1])#,marker='o')
     
 
 
-plt.plot(m[0].pos[:,0],m[0].pos[:,1])#,marker='o')
+
 plt.show()
 
 output = A

@@ -5,16 +5,16 @@ import cv2
 import math as m
 from g_encoder import GEncoder
 
-printArea = np.array([200, 270]) # (Y, X) in mm
+printArea = np.array([950, 1880]) # (Y, X) in mm
 upScale = 20 # upscale factor
 blurLen = 10
 
-lineSpace = 1 # distance between lines in mm
-lineHeight = 1.2 # max amplitude of sinwave
-lineDensity = .35 # mm per point that lines are made out of
+lineSpace = 2 # distance between lines in mm
+lineHeight = 1 # max amplitude of sinwave
+lineDensity = .2 # mm per point that lines are made out of
 
 
-img = cv2.imread('test4.jpg') # read in image
+img = cv2.imread('Picture3.png') # read in image
 
 # Rescale to fit on designated print area
 def reScale(img,printArea,upScale):
@@ -86,7 +86,7 @@ def myDist(line,input):
 for n in range(line.shape[0]):
     scaledCord = (round(line[n,1]*upScale),round(line[n,0]*upScale))
     pxl = A[scaledCord]
-    line[n,1] = line[n,1] + lineHeight*pxl * m.sin(3*line[n,0])#+pxl*20)
+    line[n,1] = line[n,1] + lineHeight*pxl * m.sin(3*line[n,0]+pxl*2)
 
 # remove straight line points
 speedyLine = []

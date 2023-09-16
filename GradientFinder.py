@@ -23,9 +23,10 @@ def gradient(img,upScale):
         img = cv2.resize(img, (0, 0), fx=upScale, fy=upScale)
         A = np.array(img) # convert to np Array
         A = A[:,:,0]*0.2989 + A[:,:,1]*0.5870 + A[:,:,2]*0.1140 # converts to grey scale
-        filt = gkern(upScale*2,upScale)
+        l = upScale*3
+        filt = gkern(l*3,l)
         A = signal.convolve(A,filt,mode='valid')
-        A = A/255 # Invert and normalize between 0 and 1
+        A = A/255 # normalize between 0 and 1
         return A
 
 
@@ -38,10 +39,21 @@ def gradient(img,upScale):
     # Rescale
     A = reScale(img,upScale)
     
+    
+    # rectangular
     kern = np.array([[-1,0,1],[-1,0,1],[-1,0,1]])
     Ahorz = signal.convolve(A,kern,mode='valid')
     kern = np.array([[-1,-1,-1],[0,0,0],[1,1,1]])
     Avert = signal.convolve(A,kern,mode='valid')
+
+    # Add border to act like a wall
+    def addBorder(A):
+        w = 1
+        A = np.hstack((np.zeros((A.shape[0], w)),A,np.zeros((A.shape[0], w))))
+        A = np.vstack((np.zeros((w, A.shape[1])),A,np.zeros((w, A.shape[1]))))
+        return A
+ 
+    # polar
     Atheta = np.arctan2(Ahorz,Avert+0.000001)
     Amag = np.sqrt(np.power(Avert,2) + np.power(Ahorz,2))
 
@@ -58,7 +70,7 @@ def gradient(img,upScale):
     # Amag : magnitude of the derivitive of the image
     return A, Ahorz, Avert, Atheta, Amag
 
-img = cv2.imread('test2.jpg') # read in image
+img = cv2.imread('test3.jpg') # read in image
 
 A, Ahorz, Avert, Atheta, Amag = gradient(img,upScale)
 
@@ -73,7 +85,9 @@ for y in range(Atheta.shape[0]):
         Acolors[y,x,:] = [r,g,b]
 
 output = Acolors*255
-#output = np.round(myNorm(output)*255)
+# output = A*255
+# output = Amag*255
+# output = np.round((Avert+1)*255/2)
 cv2.imwrite('testProcessed.png',output)
 
-
+print('DONE you dimwit')
