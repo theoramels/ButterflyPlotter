@@ -117,8 +117,6 @@ class rover:
         width = round((c[radius].shape[0]-1)/2)
         rows = (curPos[0]-width, curPos[0]+width+1)
         cols = (curPos[1]-width, curPos[1]+width+1)
-        print(rows)
-        print(cols)
         mask = np.logical_or(Trace[rows[0]:rows[1], cols[0]:cols[1]], c[radius])
         Trace[rows[0]:rows[1], cols[0]:cols[1]] = mask
 
