@@ -6,6 +6,7 @@ import math as mth
 import random
 
 
+
 L= 2000
 
 All = np.load('Gradient.npy')
