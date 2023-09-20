@@ -6,6 +6,8 @@ import math as m
 import random
 from scipy import signal
 
+# next thing to do is figure out how to stamp the thing delayed so that it doesn't interfere with the sensors you dim wit
+
 dMinMax = (1,10) # (mm) min and max distance between lines
 printArea = (500,550) # (x,y) in mm
 pxlPerSqmm = 100 # pixels per square mm
