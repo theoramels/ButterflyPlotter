@@ -5,7 +5,7 @@ import ezdxf
 from ezdxf import recover
 from ezdxf.addons.drawing import RenderContext, Frontend
 from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
-
+import numpy as np
 from pathlib import Path
 
 def file_dialog_dxf():
@@ -41,3 +41,26 @@ def read_dxf(path):
                 loops.append(current_loop)  # add loop to list of loops
                 current_loop = []  # reset variable
     return loops
+
+# reads dxf into list of list of points
+def read_dxf_fancy(path):
+    try:
+        doc, auditor = recover.readfile(path)
+    except IOError:
+        print(f"Not a DXF file or a generic I/O error.")
+        sys.exit(1)
+    except ezdxf.DXFStructureError:
+        print(f"Invalid or corrupted DXF file.")
+        sys.exit(2)
+
+    # Get XY coordinates of DXF into an array
+    msp = doc.modelspace()  # Get the modelspace entities
+    lines = np.zeros((len(msp),2))  # initiate list
+    n = 0
+    for entity in msp:
+        # check if the entity is a line or a polyline
+        if entity.dxftype() in {"LINE"}:
+            lines[n,:] = np.array((entity.dxf.start[0], entity.dxf.start[1]))
+            n = n + 1
+            
+    return lines
