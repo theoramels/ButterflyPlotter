@@ -7,10 +7,10 @@ import random
 from scipy import signal
 
 dMinMax = (.5,4) # (mm) min and max distance between lines
-printArea = (200,270) # (x,y) in mm
+printArea = (400,540) # (x,y) in mm
 pixelsPerMM = 10 # pixels per mm
-fname = 'test2.jpg' # input image file name
-L= 100000 # max itterations
+fname = 'test3.jpg' # input image file name
+L= 10000 # max itterations
 
 # pre generate list of circles to use later
 def CircleGenerator(dMinMax,pxl_mm):
@@ -110,7 +110,7 @@ class rover:
         toler = .1 # distance to be within bounds by in mm
         if self.pos[self.n,0] > toler and self.pos[self.n,0] < self.printArea[0]-toler and self.pos[self.n,1] > toler and self.pos[self.n,1] < self.printArea[1]-toler:
             self.boundsSwitch = self.boundsSwitch + 1
-            if random.random() < weight*0.0001 and self.switchCount > self.stampDelay*2: 
+            if random.random() < weight*0.00001 and self.switchCount > self.stampDelay*2: 
                 self.alpha = self.alpha*-1 # switch directions
                 self.switchCount = 0 # reset counter till next switch allowed
         else: # if outside of bounds
@@ -214,7 +214,7 @@ for x in range(80): # loop that respawns rover when it gets stuck
     # check if Trace is filled
     filled = np.sum(Trace)/((Trace.shape[0]-bordWidth*2)*(Trace.shape[1]-bordWidth-2))
     print(filled)
-    if filled > 0.9:
+    if filled > 0.86:
         break
 
     # determine respawn point radialy
