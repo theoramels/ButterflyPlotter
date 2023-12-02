@@ -8,6 +8,7 @@ printArea = (200, 250) # (Y, X) in mm
 
 lineDist = 2 # distance between lines in mm
 lineHeight = 1.5 # line height in mm
+# poo poo pee pee
 
 
 blurLen = 2
