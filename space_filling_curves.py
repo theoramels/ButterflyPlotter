@@ -102,7 +102,7 @@ Polya_Sweep = SpaceFillingCurve([
 p = Polya_Sweep.get_points(12)
 debug_plot(p)
 
-
+# test
 Gosper_Curve = SpaceFillingCurve([
     [1,0,1,1],
     [0,1,-1,-1],
